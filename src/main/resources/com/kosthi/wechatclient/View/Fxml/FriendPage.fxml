@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.effect.InnerShadow?>
@@ -7,7 +8,7 @@
 <Pane xmlns:fx="http://javafx.com/fxml/1" id="friendPage" maxHeight="-Infinity" maxWidth="-Infinity"
       minHeight="-Infinity"
       minWidth="-Infinity" prefHeight="648.0" prefWidth="385.0" stylesheets="@CSS/FriendPage.css"
-      xmlns="http://javafx.com/javafx/8.0.121">
+      xmlns="http://javafx.com/javafx/17.0.2-ea">
     <children>
         <Button id="head" mnemonicParsing="false" prefHeight="385.0" prefWidth="385.0"/>
         <Pane id="Mask" prefHeight="220.0" prefWidth="385.0"/>
@@ -70,7 +71,7 @@
             </children>
         </Pane>
         <TextArea id="label" editable="false" layoutX="6.0" layoutY="269.0" prefHeight="69.0" prefWidth="375.0"
-                  promptText="这位少侠很懒..." wrapText="true">
+                  text="..." wrapText="true">
             <font>
                 <Font name="Freestyle Script" size="16.0"/>
             </font>

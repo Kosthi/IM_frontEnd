@@ -1,5 +1,6 @@
 package com.kosthi.wechatclient.View;
 
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -8,24 +9,31 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
+import lombok.Getter;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Vector;
 
 /**
- * 邓鹏飞
- * <p>
  * 搜索好友页面
  */
+@Getter
 public class SearchFriend extends Window {
     public static Vector<String> friendVector;
-    private Vector<ListItem> items;
+    private final Vector<ListItem> items;
+
+    @FXML
     private ListView friendList;
 
-    public SearchFriend() throws IOException {
-        root = FXMLLoader.load(getClass().getResource("Fxml/SearchFriend.fxml"));
+    public SearchFriend() {
+        try {
+            root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Fxml/SearchFriend.fxml")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Scene scene = new Scene(root, 600, 350);
-        friendList = ((ListView) $("friendList"));
+        // friendList = ((ListView) $("friendList"));
         ((TextField) $("textInput")).setTooltip(new Tooltip("输入账号，回车查询"));
         items = new Vector<>();
         friendVector = new Vector<>();
@@ -33,19 +41,11 @@ public class SearchFriend extends Window {
         setScene(scene);
         initStyle(StageStyle.TRANSPARENT);
         setResizable(false);
-        setTitle("We Chat");
+        setTitle("WeChat");
         move();
         setIcon();
         quit();
         minimiser();
-    }
-
-    @Override
-    public void quit() {
-        ((Button) $("quit1")).setTooltip(new Tooltip("关闭"));
-        ((Button) $("quit1")).setOnAction(event -> {
-            close();
-        });
     }
 
     public void add(String head, String account, MainWindow mainWindow) {
@@ -57,25 +57,14 @@ public class SearchFriend extends Window {
     }
 
     @Override
+    public void quit() {
+        ((Button) $("quit1")).setTooltip(new Tooltip("关闭"));
+        ((Button) $("quit1")).setOnAction(event -> close());
+    }
+
+    @Override
     public void minimiser() {
         ((Button) $("minimiser1")).setTooltip(new Tooltip("最小化"));
-        ((Button) $("minimiser1")).setOnAction(event -> {
-            setIconified(true);
-        });
+        ((Button) $("minimiser1")).setOnAction(event -> setIconified(true));
     }
-
-    public void clear() {
-        friendList.getItems().clear();
-        friendVector.clear();
-    }
-
-    public ListView getFriendList() {
-        return friendList;
-    }
-
-    public Vector<ListItem> getItems() {
-        return items;
-    }
-
-
 }

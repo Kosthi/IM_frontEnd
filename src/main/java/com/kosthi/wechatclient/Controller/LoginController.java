@@ -1,24 +1,22 @@
 package com.kosthi.wechatclient.Controller;
 
-import com.kosthi.wechatclient.Model.DatabaseModel;
-import com.kosthi.wechatclient.Util.MD5Util;
+import com.google.gson.reflect.TypeToken;
+import com.kosthi.wechatclient.Entity.*;
+import com.kosthi.wechatclient.Model.ChatManager;
+import com.kosthi.wechatclient.Model.MsgData;
 import com.kosthi.wechatclient.Util.OkHttpUtil;
-import com.kosthi.wechatclient.View.Login;
-import com.kosthi.wechatclient.View.MainWindow;
-import com.kosthi.wechatclient.View.Register;
+import com.kosthi.wechatclient.View.*;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Vector;
 import java.util.regex.Pattern;
 
 public class LoginController implements Initializable {
@@ -42,111 +40,88 @@ public class LoginController implements Initializable {
 
     private Login loginView;
 
-    private DatabaseModel database;
-
-    private RestTemplate restTemplate;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         registerButton.setOnMouseClicked(e -> {
-                    try {
-                        new Register().show();
-                    } catch (IOException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                }
-        );
+            ((Register) ViewFactory.createUI(ViewType.REGISTER)).show();
+        });
 
         loginButton.setOnAction(event -> {
-            // loginView.resetErrorTip();
             if (checkUserInfo()) {
-                String loginStatus = login(account.getText(), password.getText());
-                if (loginStatus.equals("密码不匹配")) {
-                    passwordError.setText(loginStatus);
-                } else if (loginStatus.equals("登录成功")) {
-                    try {
-                        new MainWindow().show();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    accountError.setText("！未知错误，登录失败");
+                String userJson = HttpRequest.login(account.getText(), password.getText());
+                if (userJson == null) {
+                    passwordError.setText("！密码不匹配");
+                    return;
                 }
+
+                User user = OkHttpUtil.GSON.fromJson(userJson, User.class);
+                // System.out.println(user.getUsername());
+
+                // 记录当前登录用户
+                UserData.currentUser = user;
+
+                // 服务器端自动更新在线信息
+                // HttpRequest.updateUserStatus(UserData.currentUser.getAccount(), true);
+
+                Homepage homepage = (Homepage) ViewFactory.createUI(ViewType.HOMEPAGE);
+                homepage.setUserData(user);
+
+                MainWindow mainWindow = (MainWindow) ViewFactory.createUI(ViewType.MAIN);
+                // 设置主界面头像
+                mainWindow.setHead(user.getHead());
+                // 设置主界面信息
+                mainWindow.setPersonalInfo(user.getAccount(), user.getUsername(), user.getAddress(), user.getTelephone());
+
+                // 聊天助手
+                mainWindow.addFriend("system", "WeChat聊天助手", "聊天助手");
+                // ((Label) $(mainWindow, "Y_account")).setText("WeChat聊天助手");
+                MsgData.msg.add(new Vector<>());
+                MsgData.accountList.add("WeChat聊天助手");
+                MsgData.msgTip.put("WeChat聊天助手", 0);
+
+                // 添加所有好友
+                String friendListJson = HttpRequest.queryAllFriends(user.getAccount());
+                List<User> userList = OkHttpUtil.GSON.fromJson(friendListJson, new TypeToken<List<User>>() {
+                }.getType());
+                if (userList != null) {
+                    for (User user0 : userList) {
+                        MsgData.msg.add(new Vector<>());
+                        String temp = user0.getAccount();
+                        // 账号列表
+                        MsgData.accountList.add(temp);
+                        // 0 条消息
+                        MsgData.msgTip.put(temp, 0);
+                        mainWindow.addFriend(user0.getHead(), user0.getAccount(), user0.getLabel(), (FriendPage) ViewFactory.createUI(ViewType.FRIEND_PAGE));
+
+                        // 列表里第几个好友
+                        int index = MsgData.accountList.size() - 1;
+                        // 更新好友登录状态信息
+                        if (HttpRequest.checkIfUserOnline(user0.getAccount())) {
+                            // 已登入就设置为登入状态
+                            mainWindow.getFriendVector().get(index).setOnline();
+                        }
+                    }
+                }
+
+                mainWindow.addLeft("system", "欢迎使用WeChat,赶快找好友聊天吧!");
+                MsgData.msg.get(0).add("WeChat聊天助手 欢迎使用WeChat,赶快找好友聊天吧!");
+                //输入框禁用
+                // ((TextField) $(mainWindow, "input")).setDisable(true);
+                //  ((Button) $(mainWindow, "send")).setDisable(true);
+                // 开始选择聊天助手
+                mainWindow.getFriendList().getSelectionModel().select(0);
+                mainWindow.getFriendVector().get(0).setOnline(); //否则未登入状态
+
+                // 链接服务器
+                ChatManager.getInstance().connect("127.0.0.1", user.getAccount());
+                //设置背景
+                //setHeadPortrait(((Button)$(mainWindow,"background")),"background",resultSet.getString("background"));
+                ViewFactory.close(ViewType.LOGIN);
+                mainWindow.show();
             }
-//            else {
-//                ResultSet resultSet = null;
-//                try {
-//                    resultSet = database.execResult("SELECT * FROM user WHERE account=?", Account);
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-//                try {
-//                    if (resultSet.next()) {
-//                        if (resultSet.getString(3).equals(Password)) {
-//                            ResultSet set = database.execResult("SELECT * FROM dialog WHERE account = ?", Account);
-//                            if (set.next()) {
-//                                loginView.setErrorTip("accountError", "该账号已经登入，不能重复登入!");
-//                            } else {
-            // database.exec("INSERT INTO dialog VALUES(?)", Account);//登入记录
-            //设置用户数据
-//                                userdata.setUserdata(resultSet);
-//                                userdata.setData(resultSet);
-//                                //个人主页数据
-//                                homepage.setUserData(userdata.getUserdata());
-//                                dialog.close();
-//                                //主窗口
-//                                mainWindow.setHead(userdata.getHead());
-//                                mainWindow.setPersonalInfo(userdata.getAccount(), userdata.getName(), userdata.getAddress(), userdata.getPhone());
-//
-//                                ResultSet resultSet1 = database.execResult("SELECT head,account,remark FROM user,companion WHERE account = Y_account AND I_account=?", UserName);
-//
-//                                //聊天助手
-//                                mainWindow.addFriend("system", "WeChat聊天助手", "聊天助手");
-//                                ((Label) $(mainWindow, "Y_account")).setText("WeChat聊天助手");
-//                                MsgData.msg.add(new Vector<>());
-//                                MsgData.accountList.add("WeChat聊天助手");
-//                                MsgData.msgTip.put("WeChat聊天助手", 0);
-//
-//                                //所有好友
-//                                while (resultSet1.next()) {
-//                                    MsgData.msg.add(new Vector<>());
-//                                    String temp = resultSet1.getString("account");
-//                                    MsgData.accountList.add(temp);
-//                                    MsgData.msgTip.put(temp, 0);
-//                                    mainWindow.addFriend(resultSet1.getString("head"), resultSet1.getString("account"), resultSet1.getString("remark"), database, friendPage);
-//                                }
-//
-//                                mainWindow.addLeft("system", "欢迎使用WeChat,赶快找好友聊天吧!");
-//                                MsgData.msg.get(0).add("WeChat聊天助手 欢迎使用WeChat,赶快找好友聊天吧!");
-//                                //输入框禁用
-//                                ((TextField) $(mainWindow, "input")).setDisable(true);
-//                                ((Button) $(mainWindow, "send")).setDisable(true);
-//                                //开始选择聊天助手
-//                                mainWindow.getFriendList().getSelectionModel().select(0);
-//                                //获取已登入的好友
-//                                ResultSet resultSet2 = database.execResult("SELECT Y_account FROM companion WHERE I_account=? AND Y_account in (SELECT account FROM dialog)", UserName);
-//                                while (resultSet2.next()) {
-//                                    int i = MsgData.accountList.indexOf(resultSet2.getString("Y_account"));
-//                                    if (i != -1) {
-//                                        mainWindow.getFriendVector().get(i).setOnline();//已登入就设置为登入状态
-//                                    }
-//                                }
-//                                mainWindow.getFriendVector().get(0).setOnline();//否则未登入状态
-//                                ChatManager.getInstance().connect("127.0.0.1", UserName);//链接服务器
-//                                //设置背景
-//                                //setHeadPortrait(((Button)$(mainWindow,"background")),"background",resultSet.getString("background"));
-//                                mainWindow.show();
-//                            }
-//                        } else {
-//                            loginView.setErrorTip("passwordError", "！您输入的密码有误");
-//                        }
-//                    } else {
-//                        loginView.setErrorTip("accountError", "！账号未注册");
-//                    }
-//                } catch (SQLException e) {
-//                    e.printStackTrace();
-//                }
-//            }
+            // 加入登录检查
+            //
+            // 设置用户数据
         });
     }
 
@@ -180,27 +155,10 @@ public class LoginController implements Initializable {
             }
             return false;
         }
-        if (!checkIfUserExists(Account)) {
+        if (!HttpRequest.checkIfUserExists(Account)) {
             accountError.setText("！错误,账号不存在");
             return false;
         }
         return true;
-    }
-
-    private boolean checkIfUserExists(String account) {
-        String uri = "http://localhost:8080/exist?account=" + account;
-        return Boolean.parseBoolean(OkHttpUtil.get(uri, null));
-    }
-
-    private String login(String account, String password) {
-        String uri = "http://localhost:8080/login";
-
-        // 创建请求体,并添加数据（body参数不需要时，可以省略，需要时添加到bodyParam中即可.）
-        Map<String, Object> bodyParam = new HashMap<>(5);
-        // 与json中的键值一致
-        bodyParam.put("account", account);
-        bodyParam.put("password", MD5Util.encrypt(password));
-
-        return OkHttpUtil.postJson(uri, bodyParam);
     }
 }

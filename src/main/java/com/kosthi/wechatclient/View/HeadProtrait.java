@@ -7,21 +7,26 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
-import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
+import java.util.Objects;
 
 // 选择头像页面
 public class HeadProtrait extends Window {
-    private ToggleGroup group;
+    private final ToggleGroup group;
 
-    public HeadProtrait() throws IOException {
-        root = FXMLLoader.load(HeadProtrait.class.getResource("Fxml/HeadPortrait.fxml"));
+    public HeadProtrait() {
+        try {
+            root = FXMLLoader.load(Objects.requireNonNull(HeadProtrait.class.getResource("Fxml/HeadPortrait.fxml")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Scene scene = new Scene(root, 700, 440);
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
         initStyle(StageStyle.TRANSPARENT);
+
         group = new ToggleGroup();
         Group();
         setResizable(false);
@@ -35,17 +40,13 @@ public class HeadProtrait extends Window {
     @Override
     public void quit() {
         ((Button) $("quit1")).setTooltip(new Tooltip("关闭"));
-        ((Button) $("quit1")).setOnAction(event -> {
-            close();
-        });
+        ((Button) $("quit1")).setOnAction(event -> close());
     }
 
     @Override
     public void minimiser() {
         ((Button) $("minimiser1")).setTooltip(new Tooltip("最小化"));
-        ((Button) $("minimiser1")).setOnAction(event -> {
-            setIconified(true);
-        });
+        ((Button) $("minimiser1")).setOnAction(event -> setIconified(true));
     }
 
     public void Group() {
@@ -62,10 +63,5 @@ public class HeadProtrait extends Window {
 
         ((RadioButton) $("one")).setSelected(true);
         ((RadioButton) $("one")).requestFocus();
-    }
-
-    public void setModailty(Window Own) {
-        initModality(Modality.APPLICATION_MODAL);
-        initOwner(Own);
     }
 }

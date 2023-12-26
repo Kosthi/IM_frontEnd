@@ -1,6 +1,7 @@
 package com.kosthi.wechatclient.View;
 
 
+import com.kosthi.wechatclient.Entity.User;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -8,12 +9,16 @@ import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class FriendPage extends Window {
-    public FriendPage() throws IOException {
-        root = FXMLLoader.load(getClass().getResource("Fxml/FriendPage.fxml"));
+    public FriendPage() {
+        try {
+            root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Fxml/FriendPage.fxml")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Scene scene = new Scene(root, 385, 648);
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
@@ -27,36 +32,30 @@ public class FriendPage extends Window {
     }
 
     public static void setHeadPortrait(Button button, String head, String file) {
-
-        button.setStyle(String.format("-fx-background-image: url('/View/Fxml/CSS/Image/%s/%s.jpg')", file, head));
-
+        // button.setStyle(String.format("-fx-background-image: url('Fxml/CSS/Image/%s/%s.jpg')", file, head));
     }
 
     @Override
     public void quit() {
         ((Button) $("quit1")).setTooltip(new Tooltip("关闭"));
-        ((Button) $("quit1")).setOnAction(event -> {
-            close();
-        });
+        ((Button) $("quit1")).setOnAction(event -> close());
     }
 
     @Override
     public void minimiser() {
         ((Button) $("minimiser1")).setTooltip(new Tooltip("最小化"));
-        ((Button) $("minimiser1")).setOnAction(event -> {
-            setIconified(true);
-        });
+        ((Button) $("minimiser1")).setOnAction(event -> setIconified(true));
     }
 
-    public void setFriendData(ResultSet resultSet, String remark) throws SQLException {
-        ((Label) $("account")).setText(resultSet.getString("account"));
-        ((TextArea) $("label")).setText(resultSet.getString("label"));
-        ((TextField) $("name")).setText(resultSet.getString("name"));
-        ((TextField) $("address")).setText(resultSet.getString("address"));
-        ((TextField) $("sex")).setText(resultSet.getString("sex"));
-        ((TextField) $("age")).setText(resultSet.getString("age"));
-        ((TextField) $("phone")).setText(resultSet.getString("phone"));
+    public void setFriendData(User user, String remark) throws SQLException {
+        ((Label) $("account")).setText(user.getAccount());
+        ((TextArea) $("label")).setText(user.getLabel());
+        ((TextField) $("name")).setText(user.getUsername());
+        ((TextField) $("address")).setText(user.getAddress());
+        ((TextField) $("sex")).setText(String.valueOf(user.getSex()));
+        ((TextField) $("age")).setText(String.valueOf(user.getAge()));
+        ((TextField) $("phone")).setText(user.getTelephone());
         ((TextField) $("remark")).setText(remark);
-        setHeadPortrait(((Button) $("head")), resultSet.getString("head"), "head1");
+        setHeadPortrait(((Button) $("head")), user.getHead(), "head1");
     }
 }

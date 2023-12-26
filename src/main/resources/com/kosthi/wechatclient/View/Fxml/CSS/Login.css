@@ -71,13 +71,10 @@
 }
 
 #account, #password {
-
     -fx-background-radius: 20px;
     -fx-background-color: white;
     -fx-border-radius: 20px;
     -fx-border-color: rgb(200, 200, 200);
-
-
 }
 
 #account {
@@ -100,12 +97,10 @@
 }
 
 #account:focused, #password:focused {
-
     -fx-background-radius: 20px;
     -fx-background-color: white;
     -fx-border-radius: 20px;
     -fx-border-color: rgb(160, 160, 160);
-
 }
 
 #login {

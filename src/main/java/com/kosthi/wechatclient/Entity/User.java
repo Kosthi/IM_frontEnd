@@ -1,18 +1,14 @@
 package com.kosthi.wechatclient.Entity;
 
-import com.kosthi.wechatclient.Util.MD5Util;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.codec.digest.Md5Crypt;
-
-import java.io.Serializable;
 
 // 使用Builder模式+链式调用来设置多个属性的对象
 @Setter
 @Getter
 @Builder
-public class User implements Serializable {
+public class User {
 
     private String account;
     private String password;
@@ -24,10 +20,6 @@ public class User implements Serializable {
     private String label;
     private String head;
     private String background;
-
-    public void setPassword(String password) {
-        this.password = MD5Util.encrypt(password);
-    }
 
     //    @JsonCreator
 //    public User(@JsonProperty("account") String account,

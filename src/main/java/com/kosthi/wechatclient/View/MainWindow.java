@@ -1,41 +1,41 @@
 package com.kosthi.wechatclient.View;
 
-import com.kosthi.wechatclient.Controller.Controller;
-import com.kosthi.wechatclient.Model.ChatManager;
-import com.kosthi.wechatclient.Model.DatabaseModel;
-import com.kosthi.wechatclient.Model.Tool;
+import com.kosthi.wechatclient.Entity.UserData;
+import com.kosthi.wechatclient.Util.Tool;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.util.Objects;
 import java.util.Vector;
 
 // 主窗口
 public class MainWindow extends Window {
-    private ListView friendList;
-    private ListView chatList;
-    private Vector<friendListItem> friendVector;
+    private final ListView friendList;
+    private final ListView chatList;
+    private final Vector<friendListItem> friendVector;
+    private final ContextMenu contextMenu;
+    private final Vector<MenuItem> rightItem;
     private Vector<ChatListItem> chatVector;
-    private ContextMenu contextMenu;
-    private Vector<MenuItem> rightItem;
     private double xOffset;
     private double yOffset;
 
-    public MainWindow() throws IOException {
-        root = FXMLLoader.load(getClass().getResource("Fxml/MainWindow.fxml"));
+    public MainWindow() {
+        try {
+            root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Fxml/MainWindow.fxml")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         Scene scene = new Scene(root, 1400, 700);
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
         initStyle(StageStyle.TRANSPARENT);
         setResizable(false);
-        setTitle("We Chat");
+        setTitle("WeChat");
         friendList = ((ListView) $("FirendList"));
         chatList = ((ListView) $("ChatList"));
         friendVector = new Vector<>();
@@ -53,83 +53,32 @@ public class MainWindow extends Window {
         initTooltip();
     }
 
+    // 使用默认头像
     public static void setHeadPortrait(Button button, String head) {
-        button.setStyle(String.format("-fx-background-image: url('/View/Fxml/CSS/Image/head/%s.jpg')", head));
+//        String format = String.format("-fx-background-image: url(\"/View/Fxml/CSS/Image/head/%s.jpg\")", head);
+//        button.setStyle(format);
+//        System.out.println(button.getStyle());
     }
 
-    public static void setHeadPortrait(Button button, String background, String file) {
-        button.setStyle(String.format("-fx-background-image: url('/View/Fxml/CSS/Image/%s/%s.jpg')", file, background));
-    }
+//    public static void setHeadPortrait(Button button, String background, String file) {
+//        button.setStyle(String.format("-fx-background-image: url('Fxml/CSS/Image/%s/%s.jpg')", file, background));
+//    }
 
     public void initTooltip() {
-        ((Button) $("maximization")).setTooltip(new Tooltip("添加好友"));
+        ((Button) $("addFriend")).setTooltip(new Tooltip("添加好友"));
         ((Button) $("setting")).setTooltip(new Tooltip("设置"));
         ((Button) $("individual")).setTooltip(new Tooltip("个人资料"));
-        ((Button) $("moref")).setTooltip(new Tooltip("好友资料"));
+        ((Button) $("moreFriend")).setTooltip(new Tooltip("好友资料"));
         ((TextField) $("search")).setTooltip(new Tooltip("查找好友"));
         ((Button) $("send")).setTooltip(new Tooltip("发送"));
     }
 
-    /**
-     * 右键菜单
-     */
-    @Override
-    public void move() {
-        root.setOnMousePressed(event -> {
-            contextMenu.getItems().clear();
-            if (event.getButton() == MouseButton.SECONDARY) {
-                rightItem.get(0).setOnAction(event1 -> {
-                    Controller.searchFriend.show();
-                });
-                rightItem.get(1).setOnAction(event1 -> {
-//
-                });
-                rightItem.get(2).setOnAction(event1 -> {
-                    setIconified(true);
-                });
-                rightItem.get(3).setOnAction(event1 -> {
-                    close();
-                    try {
-                        Controller.database.exec("DELETE FROM dialog WHERE account  = ?", Controller.userdata.getAccount());
-                        try {
-                            ChatManager.getInstance().send("#### " + Controller.userdata.getAccount() + " ####");
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                    System.exit(0);
-                });
-                contextMenu.getItems().addAll(rightItem);
-                contextMenu.show(this, event.getScreenX(), event.getScreenY());
-            }
-            xOffset = getX() - event.getScreenX();
-            yOffset = getY() - event.getScreenY();
-            getRoot().setCursor(Cursor.CLOSED_HAND);
-
-        });
-        root.setOnMouseDragged(event -> {
-
-            setX(event.getScreenX() + xOffset);
-            setY(event.getScreenY() + yOffset);
-
-
-        });
-        root.setOnMouseReleased(event -> {
-            root.setCursor(Cursor.DEFAULT);
-
-        });
-
-    }
-
-    //别人的消息
+    // 别人的消息
     public void addLeft(String head, String Msg) {
         chatList.getItems().add(new ChatListItem().Left(head, Msg, Tool.getWidth(Msg), Tool.getHight(Msg)));
     }
 
-    //自己的消息
+    // 自己的消息
     public void addRight(String head, String Msg) {
         chatList.getItems().add(new ChatListItem().Right(head, Msg, Tool.getWidth(Msg), Tool.getHight(Msg)));
     }
@@ -140,24 +89,10 @@ public class MainWindow extends Window {
 
     @Override
     public void quit() {//退出
-        ((Button) $("quit1")).setTooltip(new Tooltip("退出"));
-        ((Button) $("quit1")).setOnAction(event -> {
-            close();
-            try {
-                Controller.database.exec("DELETE FROM dialog WHERE account  = ?", Controller.userdata.getAccount());
-                try {
-                    ChatManager.getInstance().send("#### " + Controller.userdata.getAccount() + " ####");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            System.exit(0);
-        });
+        // ((Button) $("quit1")).setTooltip(new Tooltip("退出"));
     }
 
+    // 窗口最小化
     @Override
     public void minimiser() {
         ((Button) $("minimiser1")).setTooltip(new Tooltip("最小化"));
@@ -171,24 +106,33 @@ public class MainWindow extends Window {
      *
      * @param head
      * @param account
-     * @param database
      * @param friendPage
      */
-    public void addFriend(String head, String account, String remark, DatabaseModel database, FriendPage friendPage) {
+    public int addFriend(String head, String account, String remark, FriendPage friendPage) {
         friendVector.add(new friendListItem(head, account, remark));
+
         int index = friendVector.size() - 1;
+
+        // 为新的好友item设置事件响应
+        // 提示窗
         friendVector.get(index).setActionForMsgTip();
-        friendVector.get(index).setActionForInfo(database, friendPage, account);
-        friendVector.get(index).setActionForSendMsg(this, account, Controller.userdata.getHead());
+        // 个人资料
+        friendVector.get(index).setActionForInfo(friendPage, account);
+        // 发送消息
+        friendVector.get(index).setActionForSendMsg(this, account, UserData.currentUser.getHead());
+        // 清除聊天记录
         friendVector.get(index).setActionForClear(this);
-        friendVector.get(index).setActionForDelete(database, this, Controller.userdata.getAccount());
-        friendList.getItems().add(friendVector.get(friendVector.size() - 1).getPane());
+        // 删除好友
+        friendVector.get(index).setActionForDelete(this, UserData.currentUser.getAccount());
+
+        friendList.getItems().add(friendVector.get(index).getPane());
+        return index;
     }
 
     public void addFriend(String head, String account, String remark) {
         int index = friendVector.size();
         friendVector.add(new friendListItem(head, account, remark));
-        friendVector.get(index).setActionForSendMsg(this, account, Controller.userdata.getHead());
+        friendVector.get(index).setActionForSendMsg(this, account, head);
         friendVector.get(index).setActionForMsgTip();
         friendList.getItems().add(friendVector.get(friendVector.size() - 1).getPane());
     }
@@ -240,7 +184,8 @@ class ChatListItem {
         text.setEditable(false);
     }
 
-    public Pane Left(String ihead, String itext, double width, double hight) {//别人的消息
+    // 别人的消息
+    public Pane Left(String ihead, String itext, double width, double hight) {
         text.getStyleClass().add("lefttext");
         arrow.getStyleClass().add("leftarrow");
         pane.setPrefHeight(110 + hight);
@@ -254,17 +199,16 @@ class ChatListItem {
         arrow.setLayoutX(85);
         text.setText(itext);
         MainWindow.setHeadPortrait(head, ihead);
+
         left.getChildren().add(head);
         left.getChildren().add(text);
         left.getChildren().add(arrow);
         pane.getChildren().add(left);
-
         return pane;
-
-
     }
 
-    public Pane Right(String ihead, String itext, double width, double hight) {//自己的消息
+    // 自己的消息
+    public Pane Right(String ihead, String itext, double width, double hight) {
         text.getStyleClass().add("righttext");
         arrow.getStyleClass().add("rightarrow");
         head.setLayoutY(10);
@@ -279,6 +223,7 @@ class ChatListItem {
         arrow.setLayoutX(475);
         text.setText(itext);
         MainWindow.setHeadPortrait(head, ihead);
+
         right.getChildren().add(head);
         right.getChildren().add(text);
         right.getChildren().add(left);
@@ -286,9 +231,5 @@ class ChatListItem {
         right.setLayoutX(150);
         pane.getChildren().add(right);
         return pane;
-
     }
-
 }
-
-

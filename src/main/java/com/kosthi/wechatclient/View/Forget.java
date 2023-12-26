@@ -2,21 +2,21 @@ package com.kosthi.wechatclient.View;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
 import javafx.stage.StageStyle;
 
 import java.io.IOException;
+import java.util.Objects;
 
 /**
- * 邓鹏飞
- * <p>
  * 忘记密码
  */
 public class Forget extends Window {
 
     public Forget() throws IOException {
-        root = FXMLLoader.load(getClass().getResource("Fxml/Forget.fxml"));
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Fxml/Forget.fxml")));
         Scene scene = new Scene(root, 700, 450);
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
@@ -42,28 +42,6 @@ public class Forget extends Window {
     @Override
     public void minimiser() {
         ((Button) $("minimiser1")).setTooltip(new Tooltip("最小化"));
-        ((Button) $("minimiser1")).setOnAction(event -> {
-            setIconified(true);
-        });
-    }
-
-    public void setErrorTip(String id, String Text) {
-        ((Label) $(id)).setText(Text);
-    }
-
-    public void resetErrorTip() {
-        ((Label) $("accountError")).setText("");
-        ((Label) $("nameError")).setText("");
-        ((Label) $("phoneError")).setText("");
-        ((Label) $("passwordError")).setText("");
-        ((Label) $("rePasswordError")).setText("");
-    }
-
-    public void clear() {
-        ((TextField) $("account")).clear();
-        ((TextField) $("name")).clear();
-        ((TextField) $("phone")).clear();
-        ((PasswordField) $("password")).clear();
-        ((PasswordField) $("rePassword")).clear();
+        ((Button) $("minimiser1")).setOnAction(event -> setIconified(true));
     }
 }

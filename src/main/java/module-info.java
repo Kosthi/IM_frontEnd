@@ -19,9 +19,10 @@ module com.kosthi.wechatclient {
     exports com.kosthi.wechatclient.Controller;
     opens com.kosthi.wechatclient.Controller to javafx.fxml;
     opens com.kosthi.wechatclient.View to javafx.fxml;
-    exports com.kosthi.wechatclient.Main to javafx.graphics;
     exports com.kosthi.wechatclient.Model;
-    exports com.kosthi.wechatclient.Model.Data;
     exports com.kosthi.wechatclient.View;
     exports com.kosthi.wechatclient.Test;
+    exports com.kosthi.wechatclient.Entity;
+    exports com.kosthi.wechatclient.Util;
+    opens com.kosthi.wechatclient.Entity to com.google.gson;
 }

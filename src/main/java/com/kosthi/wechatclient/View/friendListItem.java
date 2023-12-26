@@ -1,28 +1,30 @@
 package com.kosthi.wechatclient.View;
 
+import com.kosthi.wechatclient.Entity.HttpRequest;
+import com.kosthi.wechatclient.Entity.User;
 import com.kosthi.wechatclient.Model.ChatManager;
-import com.kosthi.wechatclient.Model.Data.MsgData;
-import com.kosthi.wechatclient.Model.DatabaseModel;
+import com.kosthi.wechatclient.Model.MsgData;
+import com.kosthi.wechatclient.Util.OkHttpUtil;
 import javafx.scene.control.*;
 import javafx.scene.layout.Pane;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.Vector;
 
 // 好友列表项
 public class friendListItem {
+    private final Button head;
+    private final Label information;
+    private final Pane pane;
+    private final Button send;
+    private final Button MsgTip;
+    private final Button state;
+    private final String friendName;
+    // 列表中每个好友对应一个 item
     Vector<MenuItem> items;
-    private Button head;
-    private Label information;
-    private Pane pane;
-    private Button send;
     private String friendHead;
-    private Button MsgTip;
-    private Button state;
-    private String friendName;
 
     public friendListItem(String ihead, String iaccount, String remark) {
         head = new Button();
@@ -96,33 +98,33 @@ public class friendListItem {
     }
 
     /**
-     * 显示好友个人信息
+     * 在好友栏显示好友个人信息
      *
-     * @param database
      * @param friendPage
      * @param account
      */
-    public void setActionForInfo(DatabaseModel database, FriendPage friendPage, String account) {
+    public void setActionForInfo(FriendPage friendPage, String account) {
+        // 选中显示好友资料
         items.get(1).setOnAction(event -> {
-
             if (account.equals("WeChat聊天助手")) {
-                return;
             } else {
-
-
                 if (friendPage.isShowing()) {
                     friendPage.close();
                 }
                 try {
-                    ResultSet resultSet = database.execResult("SELECT * FROM user WHERE account=?", account);
-                    resultSet.next();
-                    friendPage.setFriendData(resultSet, information.getText());
+//                    ResultSet resultSet = database.execResult("SELECT * FROM user WHERE account=?", account);
+//                    resultSet.next();
+                    String userJson = HttpRequest.queryUserByAccount(account);
+                    if (userJson == null) {
+                        return;
+                    }
+                    User user = OkHttpUtil.GSON.fromJson(userJson, User.class);
+                    friendPage.setFriendData(user, information.getText());
                     friendPage.show();
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
-
         });
     }
 
@@ -138,25 +140,23 @@ public class friendListItem {
     }
 
     /**
-     * 消息提示
+     * 未读消息提示
      *
      * @param value
      */
     public void addMsgTip(int value) {
         MsgTip.getStyleClass().clear();
         MsgTip.getStyleClass().add("MsgTip");
-        MsgTip.setText(" " + String.valueOf(value));
+        MsgTip.setText(" " + value);
     }
 
     /**
-     * 清除消息提示
+     * 清除未读消息提示
      */
     public void clearMsgTip() {
         MsgTip.getStyleClass().clear();
         MsgTip.getStyleClass().add("no-MsgTip");
-        if (!MsgTip.getText().equals("")) {
-            MsgTip.setText("");
-        }
+        MsgTip.setText("");
     }
 
     /**
@@ -181,35 +181,29 @@ public class friendListItem {
      * @return
      */
     public boolean getState() {
-        if (state.getStyleClass().equals("online")) {
-            return true;
-        } else {
-            return false;
-        }
+        return state.getStyleClass().equals("online");
     }
 
     public Vector<MenuItem> getItems() {
         return items;
     }
+
     /**
-     * 邓鹏飞
-     * 给列表中的某人发消息的页面切换
-     * @param mainWindow
-     * @param userAccount
-     * @param Head
-     */
-    /**
-     * 选择特定好友
+     * 给列表中的某人发消息的页面切换，选择特定好友
      *
      * @param mainWindow
      * @param userAccount
      * @param Head
      */
     public void setActionForSendMsg(MainWindow mainWindow, String userAccount, String Head) {
+        // 为 send 针对选中不同的好友设置不同参数事件响应
         send.setOnAction(event -> {
-            String friendAccount = friendName;
+            // System.out.println("Send resetting...");
 
+            String friendAccount = friendName;
             ((Label) mainWindow.$("Y_account")).setText(information.getText());
+
+            // 选中好友时，发消息按钮可用
             if (friendAccount.equals("WeChat聊天助手")) {
                 ((TextField) mainWindow.$("input")).setDisable(true);
                 ((Button) mainWindow.$("send")).setDisable(true);
@@ -217,45 +211,51 @@ public class friendListItem {
                 ((TextField) mainWindow.$("input")).setDisable(false);
                 ((Button) mainWindow.$("send")).setDisable(false);
             }
-            //获取当前好友在好友列表中的位置
+
+            // 获取当前好友在好友列表中的位置
             int index = MsgData.accountList.indexOf(friendAccount);
             if (index != -1) {
-                //选中
+                // 选中
                 mainWindow.getFriendList().getSelectionModel().select(index);
-                this.clearMsgTip();//清除消息提示
+                // 清除消息提示
+                this.clearMsgTip();
+                // 未读消息清0
                 MsgData.msgTip.put(friendAccount, 0);
             }
-            //放入消息映射
+
+            // 放入消息映射
             for (int i = 0; i < MsgData.accountList.size(); i++) {
                 MsgData.MsgMap.put(MsgData.accountList.get(i), MsgData.msg.get(i));
             }
-            //遍历消息映射
+
+            // 遍历消息映射
             for (Map.Entry<String, Vector<String>> entry : MsgData.MsgMap.entrySet()) {
                 if (entry.getKey().equals(friendAccount)) {
                     ((ListView) mainWindow.$("ChatList")).getItems().clear();
+
                     Vector<String> record = entry.getValue();
+
+                    // 遍历每条消息
                     for (int i = 0; i < record.size(); i++) {
                         String[] current = record.get(i).split(" ");
                         String account = current[0];
-                        String Msg = "";
+                        StringBuilder Msg = new StringBuilder();
                         for (int j = 1; j < current.length; j++) {
-                            Msg = Msg + current[j] + " ";
+                            Msg.append(current[j]).append(" ");
                         }
                         if (account.equals(userAccount)) {
-                            mainWindow.addLeft(friendHead, Msg);
+                            mainWindow.addLeft(friendHead, Msg.toString());
                         } else {
-                            mainWindow.addRight(Head, Msg);
+                            mainWindow.addRight(Head, Msg.toString());
                         }
                     }
                     break;
                 }
-
             }
         });
     }
 
     public void setActionForClear(MainWindow mainWindow) {
-
         items.get(2).setOnAction(event -> {
             if (friendName.equals("WeChat聊天助手")) {
                 return;
@@ -269,22 +269,18 @@ public class friendListItem {
                 if (index == index1) {
                     ((ListView) mainWindow.$("ChatList")).getItems().clear();
                 }
-
             }
         });
-
     }
 
     /**
      * 邓鹏飞
      * 删除列表项的好友
      *
-     * @param database
      * @param mainWindow
      * @param I_account
      */
-    public void setActionForDelete(DatabaseModel database, MainWindow mainWindow, String I_account) {
-
+    public void setActionForDelete(MainWindow mainWindow, String I_account) {
         items.get(3).setOnAction(event -> {
             int i = MsgData.accountList.indexOf(friendName);
             if (i != -1) {
@@ -303,25 +299,17 @@ public class friendListItem {
                         mainWindow.getFriendList().getSelectionModel().select(0);
                 ((Label)mainWindow.$("Y_account")).setText("WeChat聊天助手");
             }*/
+//                database.exec("DELETE FROM companion WHERE I_account = ? AND Y_account = ?", I_account, friendName);
+//                database.exec("DELETE FROM companion WHERE I_account = ? AND Y_account = ?", friendName, I_account);
             try {
-                database.exec("DELETE FROM companion WHERE I_account = ? AND Y_account = ?", I_account, friendName);
-                database.exec("DELETE FROM companion WHERE I_account = ? AND Y_account = ?", friendName, I_account);
-                try {
-                    ChatManager.getInstance().send("##@@ " + I_account + " " + friendName);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } catch (SQLException e) {
+                ChatManager.getInstance().send("##@@ " + I_account + " " + friendName);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-
         });
-
     }
 
     /**
-     * 邓鹏飞
-     * <p>
      * 标记为已读未读
      */
     public void setActionForMsgTip() {
@@ -341,14 +329,11 @@ public class friendListItem {
                 MsgTip.getStyleClass().add("MsgTip");
                 addMsgTip(1);
                 items.get(0).setText("标为已读");
-
             }
         });
     }
 
     public void setHeadPortrait(Button button, String head) {
-        button.setStyle(String.format("-fx-background-image: url('/View/Fxml/CSS/Image/head/%s.jpg')", head));
+        // button.setStyle(String.format("-fx-background-image: url('Fxml/CSS/Image/head/%s.jpg')", head));
     }
-
-
 }

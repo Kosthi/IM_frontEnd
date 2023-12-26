@@ -1,16 +1,15 @@
 package com.kosthi.wechatclient.Controller;
 
+import com.kosthi.wechatclient.Entity.HttpRequest;
 import com.kosthi.wechatclient.Entity.User;
+import com.kosthi.wechatclient.Entity.ViewFactory;
+import com.kosthi.wechatclient.Entity.ViewType;
 import com.kosthi.wechatclient.Util.MD5Util;
-import com.kosthi.wechatclient.Util.OkHttpUtil;
-import com.kosthi.wechatclient.View.Register;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.regex.Pattern;
 
@@ -30,8 +29,6 @@ public class RegisterController implements Initializable {
     @FXML
     private TextField phoneNumber;
     @FXML
-    private RadioButton womanButton;
-    @FXML
     private Label usernameError;
     @FXML
     private RadioButton manButton;
@@ -50,10 +47,17 @@ public class RegisterController implements Initializable {
     @FXML
     private Button registerButton;
 
-    private Register registerView;
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        backButton.setOnMouseClicked(e -> {
+            ViewFactory.close(ViewType.REGISTER);
+            ViewFactory.show(ViewType.LOGIN);
+        });
+
+        chooseHeadButton.setOnMouseClicked(e -> {
+            ViewFactory.show(ViewType.HEAD_PORTRAIT);
+        });
+
         registerButton.setOnMouseClicked(e -> {
             if (checkInfo()) {
                 Character sex = manButton.isSelected() ? '男' : '女';
@@ -65,10 +69,10 @@ public class RegisterController implements Initializable {
                         .age(Byte.valueOf(age.getText()))
                         .telephone(phoneNumber.getText())
                         .build();
-                registerUser(user);
-//                if (registerUser(user)) {
-//                    new Login().show();
-//                }
+                if (HttpRequest.registerUser(user)) {
+                    ViewFactory.close(ViewType.REGISTER);
+                    ViewFactory.show(ViewType.LOGIN);
+                }
             }
         });
     }
@@ -145,8 +149,8 @@ public class RegisterController implements Initializable {
                 phoneNumberError.setText("！电话号格式错误");
             }
             return false;
-        } else if (checkIfUserExists(Account) || !Password.equals(RePassword)) {
-            if (checkIfUserExists(Account)) {
+        } else if (HttpRequest.checkIfUserExists(Account) || !Password.equals(RePassword)) {
+            if (HttpRequest.checkIfUserExists(Account)) {
                 accountError.setText("！错误,账号已经存在");
             }
             if (!Password.equals(RePassword)) {
@@ -155,31 +159,5 @@ public class RegisterController implements Initializable {
             return false;
         }
         return true;
-    }
-
-    private boolean checkIfUserExists(String account) {
-        String uri = "http://localhost:8080/exist?account=" + account;
-        return Boolean.parseBoolean(OkHttpUtil.get(uri, null));
-    }
-
-    private boolean registerUser(User user) {
-        String uri = "http://localhost:8080/register";
-
-        // 创建请求头,添加请求头信息
-//        HttpHeaders httpHeaders = new HttpHeaders();
-//        httpHeaders.add(HttpHeaders.CONTENT_TYPE, "application/json");
-//        httpHeaders.add(HttpHeaders.CONTENT_ENCODING, "UTF-8");
-
-        // 创建请求体,并添加数据（body参数不需要时，可以省略，需要时添加到bodyParam中即可.）
-        Map<String, Object> bodyParam = new HashMap<>(5);
-        // 与json中的键值一致
-        bodyParam.put("account", user.getAccount());
-        bodyParam.put("username", user.getUsername());
-        bodyParam.put("password", user.getPassword());
-        bodyParam.put("sex", user.getSex());
-        bodyParam.put("age", user.getAge());
-        bodyParam.put("telephone", user.getTelephone());
-
-        return OkHttpUtil.postJson(uri, bodyParam) != null;
     }
 }

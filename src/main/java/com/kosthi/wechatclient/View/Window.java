@@ -2,7 +2,10 @@ package com.kosthi.wechatclient.View;
 
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
+
+import java.util.Objects;
 
 // 所有窗口的父类
 public abstract class Window extends Stage {
@@ -11,12 +14,15 @@ public abstract class Window extends Stage {
     private double yOffset;
 
     /**
-     * 窗口移动方法
+     * 设置图标
      */
     public void setIcon() {
-        // getIcons().add(new Image(getClass().getResourceAsStream("/View/Fxml/CSS/Image/icon.png")));
+        getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("Fxml/CSS/Image/icon.png"))));
     }
 
+    // 窗口拖动
+    // 计算鼠标与当前窗口的xy偏移值
+    // 出现鼠标拖动事件则把当前窗口的位置加上这个偏移值
     public void move() {
         root.setOnMousePressed(event -> {
             xOffset = getX() - event.getScreenX();
@@ -27,9 +33,7 @@ public abstract class Window extends Stage {
             setX(event.getScreenX() + xOffset);
             setY(event.getScreenY() + yOffset);
         });
-        root.setOnMouseReleased(event -> {
-            root.setCursor(Cursor.DEFAULT);
-        });
+        root.setOnMouseReleased(event -> root.setCursor(Cursor.DEFAULT));
     }
 
     /**
@@ -58,6 +62,6 @@ public abstract class Window extends Stage {
      * @return
      */
     public Object $(String id) {
-        return (Object) root.lookup("#" + id);
+        return root.lookup("#" + id);
     }
 }

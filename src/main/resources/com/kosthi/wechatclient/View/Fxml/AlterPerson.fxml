@@ -8,7 +8,7 @@
 <Pane xmlns:fx="http://javafx.com/fxml/1" id="AlterPerson" maxHeight="-Infinity" maxWidth="-Infinity"
       minHeight="-Infinity"
       minWidth="-Infinity" prefHeight="800.0" prefWidth="450.0" stylesheets="@CSS/AlterPerson.css"
-      xmlns="http://javafx.com/javafx/8.0.121">
+      xmlns="http://javafx.com/javafx/17.0.2-ea">
     <children>
         <Button id="background" disable="true" layoutY="-1.0" mnemonicParsing="false" prefHeight="450.0"
                 prefWidth="450.0"/>
@@ -26,7 +26,7 @@
                         <DropShadow color="#000000a1" height="11.0" radius="5.0" width="11.0"/>
                     </effect>
                 </Button>
-                <Label id="account" layoutX="123.0" layoutY="87.0" prefHeight="40.0" prefWidth="206.0" text="daydream"
+                <Label id="account" layoutX="87.0" layoutY="93.0" prefHeight="40.0" prefWidth="206.0" text="daydream"
                        textAlignment="CENTER" textFill="#b5b5b5">
                     <font>
                         <Font name="Forte" size="24.0"/>
@@ -58,13 +58,13 @@
                              textFill="#b5b5b5"/>
                 <RadioButton id="woman" layoutX="329.0" layoutY="329.0" mnemonicParsing="false" text="女"
                              textFill="#a8a8a8"/>
-                <TextField id="address" layoutX="85.0" layoutY="388.0" prefHeight="40.0" prefWidth="355.0"
+                <TextField id="address" layoutX="85.0" layoutY="392.0" prefHeight="40.0" prefWidth="355.0"
                            promptText="输入您的家乡地址">
                     <padding>
                         <Insets left="20.0"/>
                     </padding>
                 </TextField>
-                <TextField id="phone" layoutX="85.0" layoutY="457.0" prefHeight="40.0" prefWidth="355.0"
+                <TextField id="phone" layoutX="85.0" layoutY="463.0" prefHeight="40.0" prefWidth="355.0"
                            promptText="输入您的电话号(必填)">
                     <padding>
                         <Insets left="20.0"/>

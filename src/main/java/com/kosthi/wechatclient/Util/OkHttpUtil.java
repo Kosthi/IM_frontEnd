@@ -177,6 +177,32 @@ public class OkHttpUtil {
         return null;
     }
 
+    public static String put(String url, Map<String, Object> para) {
+        try {
+            // 创建媒体类型为JSON的RequestBody
+            String json = GSON.toJson(para);
+            RequestBody body = RequestBody.create(MEDIA_TYPE_JSON, json);
+
+            // 构建PUT请求
+            Request request = new Request.Builder()
+                    .url(url)
+                    .put(body)
+                    .build();
+
+            Response response = HTTP_CLIENT.newCall(request).execute();
+
+            if (response.isSuccessful() && response.body() != null) {
+                String result = response.body().string();
+                logger.info("执行PUT请求, URL: {} 成功，返回数据: {}", url, result);
+                return result;
+            } else {
+                logger.warn("PUT请求未成功, URL: {}, 响应码: {}", url, response.code());
+            }
+        } catch (Exception e) {
+            logger.error("执行PUT请求，URL: {} 出现异常!", url, e);
+        }
+        return null;
+    }
 
     /**
      * 设置请求头

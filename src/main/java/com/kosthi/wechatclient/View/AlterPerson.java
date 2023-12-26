@@ -8,17 +8,16 @@ import javafx.stage.StageStyle;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * 邓鹏飞
- * <p>
  * 修改个人信息窗口
  */
 public class AlterPerson extends Window {
-    private ToggleGroup group;
+    private final ToggleGroup group;
 
     public AlterPerson() throws IOException {
-        root = FXMLLoader.load(getClass().getResource("Fxml/AlterPerson.fxml"));
+        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("Fxml/AlterPerson.fxml")));
         Scene scene = new Scene(root, 450, 800);
         scene.setFill(Color.TRANSPARENT);
         setScene(scene);
@@ -40,36 +39,30 @@ public class AlterPerson extends Window {
 
     public static void setHeadPortrait(Button button, String head) {
 
-        button.setStyle(String.format("-fx-background-image: url('/View/Fxml/CSS/Image/head/%s.jpg')", head));
+        // button.setStyle(String.format("-fx-background-image: url('Fxml/CSS/Image/head/%s.jpg')", head));
 
     }
 
     public static void setHeadPortrait(Button button, String head, String file) {
 
-        button.setStyle(String.format("-fx-background-image: url('/View/Fxml/CSS/Image/%s/%s.jpg')", file, head));
+        // button.setStyle(String.format("-fx-background-image: url('Fxml/CSS/Image/%s/%s.jpg')", file, head));
 
     }
 
     @Override
     public void quit() {
         ((Button) $("quit1")).setTooltip(new Tooltip("关闭"));
-        ((Button) $("quit1")).setOnAction(event -> {
-            close();
-        });
+        ((Button) $("quit1")).setOnAction(event -> close());
     }
 
     @Override
     public void minimiser() {
         ((Button) $("minimiser1")).setTooltip(new Tooltip("最小化"));
-        ((Button) $("minimiser1")).setOnAction(event -> {
-            setIconified(true);
-        });
+        ((Button) $("minimiser1")).setOnAction(event -> setIconified(true));
     }
 
     public void cancel() {
-        ((Button) $("cancel")).setOnAction(event -> {
-            close();
-        });
+        ((Button) $("cancel")).setOnAction(event -> close());
     }
 
     public void setErrorTip(String id, String text) {
